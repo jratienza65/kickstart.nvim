@@ -472,17 +472,23 @@ require('lazy').setup({
     end,
   },
 
+  -- Mason must be set up before its dependents
+  {
+    'mason-org/mason.nvim',
+    config = function()
+      require('mason').setup({})
+    end,
+  },
+
   -- LSP Plugins
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
-      -- Mason must be loaded before its dependents so we need to set it up here.
-      -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-      { 'mason-org/mason.nvim', dependencies = {
-        { 'mason-org/mason-lspconfig.nvim', opts = {} },
-      }, opts = {} },
+      { 'mason-org/mason-lspconfig.nvim', config = function()
+        require('mason-lspconfig').setup({})
+      end },
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
