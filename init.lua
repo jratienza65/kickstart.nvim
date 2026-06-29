@@ -114,7 +114,7 @@ vim.o.showmode = false
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
-vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
+-- vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
 
 -- Enable break indent
 vim.o.breakindent = true
@@ -256,7 +256,200 @@ rtp:prepend(lazypath)
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   -- NOTE: Plugins can be added via a link or github org/name. To run setup automatically, use `opts = {}`
+  { 'tpope/vim-fugitive' },
+  {
+    'nvim-telescope/telescope-file-browser.nvim',
+    dependencies = { 'nvim-telescope/telescope.nvim', 'nvim-lua/plenary.nvim' },
+  },
   { 'NMAC427/guess-indent.nvim', opts = {} },
+  {
+    'folke/trouble.nvim',
+    opts = {}, -- for default options, refer to the configuration section for custom setup.
+    cmd = 'Trouble',
+    keys = {
+      {
+        '<leader>xx',
+        '<cmd>Trouble diagnostics toggle<cr>',
+        desc = 'Diagnostics (Trouble)',
+      },
+      {
+        '<leader>xX',
+        '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
+        desc = 'Buffer Diagnostics (Trouble)',
+      },
+      {
+        '<leader>cs',
+        '<cmd>Trouble symbols toggle focus=false<cr>',
+        desc = 'Symbols (Trouble)',
+      },
+      {
+        '<leader>cl',
+        '<cmd>Trouble lsp toggle focus=false win.position=right<cr>',
+        desc = 'LSP Definitions / references / ... (Trouble)',
+      },
+      {
+        '<leader>xL',
+        '<cmd>Trouble loclist toggle<cr>',
+        desc = 'Location List (Trouble)',
+      },
+      {
+        '<leader>xQ',
+        '<cmd>Trouble qflist toggle<cr>',
+        desc = 'Quickfix List (Trouble)',
+      },
+    },
+  },
+  {
+    'lewis6991/hover.nvim',
+    config = function()
+      require('hover').setup {
+        providers = {
+          'hover.providers.diagnostic',
+          'hover.providers.lsp',
+          'hover.providers.dap',
+          'hover.providers.man',
+          'hover.providers.dictionary',
+        },
+        preview_opts = {
+          border = 'single',
+        },
+        preview_window = false,
+        title = true,
+        mouse_providers = {
+          'hover.providers.lsp',
+        },
+        mouse_delay = 1000,
+      }
+
+      -- Setup keymaps
+      vim.keymap.set('n', 'K', require('hover').hover, { desc = 'hover.nvim' })
+      vim.keymap.set('n', 'gK', require('hover').hover_select, { desc = 'hover.nvim (select)' })
+      vim.keymap.set('n', '<C-p>', function() require('hover').hover_switch 'previous' end, { desc = 'hover.nvim (previous source)' })
+      vim.keymap.set('n', '<C-n>', function() require('hover').hover_switch 'next' end, { desc = 'hover.nvim (next source)' })
+
+      -- Mouse support
+      vim.keymap.set('n', '<MouseMove>', require('hover').hover_mouse, { desc = 'hover.nvim (mouse)' })
+      vim.o.mousemoveevent = true
+    end,
+  },
+  {
+    'yetone/avante.nvim',
+    -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+    -- ⚠️ must add this setting! ! !
+    build = vim.fn.has 'win32' ~= 0 and 'powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false' or 'make',
+    event = 'VeryLazy',
+    version = false, -- Never set this value to "*"! Never!
+    ---@module 'avante'
+    ---@type avante.Config
+    opts = {
+      -- add any opts here
+      -- this file can contain specific instructions for your project
+      -- instructions_file = 'avante.md',
+      -- for example
+      provider = 'openrouter',
+      providers = {
+        openrouter = {
+          __inherited_from = 'openai',
+          endpoint = 'https://openrouter.ai/api/v1',
+          api_key_name = 'OPENROUTER_API_KEY',
+          model = 'anthropic/claude-sonnet-4.6',
+        },
+      },
+      input = {
+        provider = 'snacks',
+        provider_opts = {
+          -- Additional snacks.input options
+          title = 'Avante Input',
+          icon = ' ',
+        },
+      },
+      selector = {
+        --- @alias avante.SelectorProvider "native" | "fzf_lua" | "mini_pick" | "snacks" | "telescope" | fun(selector: avante.ui.Selector): nil
+        --- @type avante.SelectorProvider
+        provider = 'snacks',
+        -- Options override for custom providers
+        provider_opts = {},
+      },
+      behaviour = {
+        allow_access_to_git_ignored_files = 'true',
+      },
+    },
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+      --- The below dependencies are optional,
+      'nvim-mini/mini.pick', -- for file_selector provider mini.pick
+      'nvim-telescope/telescope.nvim', -- for file_selector provider telescope
+      'hrsh7th/nvim-cmp', -- autocompletion for avante commands and mentions
+      'ibhagwan/fzf-lua', -- for file_selector provider fzf
+      'folke/snacks.nvim', -- for input provider snacks
+      'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
+      'zbirenbaum/copilot.lua', -- for providers='copilot'
+      {
+        -- support for image pasting
+        'HakonHarnes/img-clip.nvim',
+        event = 'VeryLazy',
+        opts = {
+          -- recommended settings
+          default = {
+            embed_image_as_base64 = false,
+            prompt_for_file_name = false,
+            drag_and_drop = {
+              insert_mode = true,
+            },
+            -- required for Windows users
+            use_absolute_path = true,
+          },
+        },
+      },
+      {
+        -- Make sure to set this up properly if you have lazy=true
+        'MeanderingProgrammer/render-markdown.nvim',
+        opts = {
+          file_types = { 'markdown', 'Avante' },
+        },
+        ft = { 'markdown', 'Avante' },
+      },
+    },
+  },
+  {
+    'johnseth97/codex.nvim',
+    cmd = { 'Codex', 'CodexToggle' }, -- Optional: Load only on command execution
+    keys = {
+      {
+        '<leader>cc', -- Change this to your preferred keybinding
+        function() require('codex').toggle() end,
+        desc = 'Toggle Codex popup or side-panel',
+        mode = { 'n', 't' },
+      },
+    },
+    opts = {
+      keymaps = {
+        toggle = '<leader>cx', -- Keybind to toggle Codex window (Disabled by default, watch out for conflicts)
+        quit = '<C-q>', -- Keybind to close the Codex window (default: Ctrl + q)
+      }, -- Disable internal default keymap (<leader>cc -> :CodexToggle)
+      border = 'rounded', -- Options: 'single', 'double', or 'rounded'
+      width = 0.8, -- Width of the floating window (0.0 to 1.0)
+      height = 0.8, -- Height of the floating window (0.0 to 1.0)
+      model = nil, -- Optional: pass a string to use a specific model (e.g., 'o3-mini')
+      autoinstall = true, -- Automatically install the Codex CLI if not found
+      panel = false, -- Open Codex in a side-panel (vertical split) instead of floating window
+      use_buffer = false, -- Capture Codex stdout into a normal buffer instead of a terminal buffer
+    },
+    -- config = function(_, opts) require('codex').setup(opts) end,
+  },
+  {
+    'andweeb/presence.nvim',
+    event = 'VeryLazy',
+    opts = {
+      -- Optional: customize behavior
+      auto_update = true,
+      debounce_timeout = 10,
+      log_level = 'debug',
+      -- Disable for specific files or paths
+      blacklist = {},
+    },
+  },
 
   -- Alternatively, use `config = function() ... end` for full control over the configuration.
   -- If you prefer to call `setup` explicitly, use:
@@ -283,6 +476,7 @@ require('lazy').setup({
         topdelete = { text = '‾' },
         changedelete = { text = '~' },
       },
+      current_line_blame = true,
     },
   },
 
@@ -377,6 +571,13 @@ require('lazy').setup({
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
+
+      local actions = require 'telescope.actions'
+      local open_with_trouble = require('trouble.sources.telescope').open
+
+      -- Use this to add more results without clearing the trouble list
+      local add_to_trouble = require('trouble.sources.telescope').add
+
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
@@ -387,14 +588,28 @@ require('lazy').setup({
         --   },
         -- },
         -- pickers = {}
+        defaults = {
+          mappings = {
+            i = { ['<c-t>'] = open_with_trouble },
+            n = { ['<c-t>'] = open_with_trouble },
+          },
+        },
+
         extensions = {
           ['ui-select'] = { require('telescope.themes').get_dropdown() },
+          ['file_browser'] = {
+            hidden = true,
+            -- Optional: prevents gitignored files from being hidden too
+            respect_gitignore = false,
+          },
         },
       }
 
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+
+      pcall(require('telescope').load_extension, 'file_browser')
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
@@ -409,6 +624,8 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+
+      vim.keymap.set('n', '<leader>fb', ':Telescope file_browser<CR>', { desc = '[F]ile [B]rowser' })
 
       -- This runs on LSP attach per buffer (see main LSP attach function in 'neovim/nvim-lspconfig' config for more info,
       -- it is better explained there). This allows easily switching between pickers if you prefer using something else!
@@ -475,9 +692,7 @@ require('lazy').setup({
   -- Mason must be set up before its dependents
   {
     'mason-org/mason.nvim',
-    config = function()
-      require('mason').setup({})
-    end,
+    config = function() require('mason').setup {} end,
   },
 
   -- LSP Plugins
@@ -486,9 +701,7 @@ require('lazy').setup({
     'neovim/nvim-lspconfig',
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
-      { 'mason-org/mason-lspconfig.nvim', config = function()
-        require('mason-lspconfig').setup({})
-      end },
+      { 'mason-org/mason-lspconfig.nvim', config = function() require('mason-lspconfig').setup {} end },
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
@@ -880,10 +1093,10 @@ require('lazy').setup({
   --
   -- require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
