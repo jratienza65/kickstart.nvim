@@ -439,16 +439,10 @@ require('lazy').setup({
     -- config = function(_, opts) require('codex').setup(opts) end,
   },
   {
-    'andweeb/presence.nvim',
+    'vyfor/cord.nvim',
+    build = ':Cord update', -- fetches the prebuilt server binary (no Rust toolchain needed)
     event = 'VeryLazy',
-    opts = {
-      -- Optional: customize behavior
-      auto_update = true,
-      debounce_timeout = 10,
-      log_level = 'debug',
-      -- Disable for specific files or paths
-      blacklist = {},
-    },
+    opts = {},
   },
 
   -- Alternatively, use `config = function() ... end` for full control over the configuration.
